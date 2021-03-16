@@ -1,4 +1,4 @@
-import socket
+import socket,threading
 from headerMessage import *
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
@@ -16,13 +16,16 @@ class ChatServer:
             acceptMessageHeader = connection.recv(HEADER_SIZE)
             if acceptMessageHeader:
                 acceptMessageHeader = int(acceptMessageHeader.strip())
-                print(acceptMessageHeader)
                 acceptMessage = connection.recv(acceptMessageHeader)
                 print(acceptMessage.decode('utf-8'))
     
 if __name__=="__main__":
     MainChatServer = ChatServer()
-    connection, address = MainChatServer.getserverSocket().accept()
-    print("Verbindung akzpetiert")
-    MainChatServer.recieveData(connection)
+    while True:
+        connection, address = MainChatServer.getserverSocket().accept()
+        print("Verbindung akzpetiert")
+        #chatThread = threading.Thread(target=MainChatServer.recieveData(connection))
+        #chatThread.start()
+        #chatThread.join()
+        MainChatServer.recieveData(connection)
 

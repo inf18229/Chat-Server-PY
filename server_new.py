@@ -1,6 +1,6 @@
 import socket
-from _thread import *
-from headerMessage import *
+from _thread import start_new_thread
+from headerMessage import HEADER_SIZE
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)

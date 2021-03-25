@@ -14,13 +14,13 @@ class ChatServer:
         self.registeredClient = []
     def getserverSocket(self):
         return self.server_socket
-    def recieveData(self,connection):
+    def recieveData(self,connection,address):
         while True:
             acceptMessageHeader = connection.recv(HEADER_SIZE)
             if acceptMessageHeader:
                 acceptMessageHeader = int(acceptMessageHeader.strip())
                 acceptMessage = connection.recv(acceptMessageHeader)
-                print(acceptMessage.decode('utf-8'))
+                print(address[0],":",address[1],"-->",acceptMessage.decode('utf-8'))
     def registerClient(self,connection):
         self.registeredClient.append(connection)
     def getregisteredClients(self):
@@ -32,7 +32,7 @@ if __name__=="__main__":
         print("Warte auf Verbindung")
         connection, address = MainChatServer.getserverSocket().accept()
         #MainChatServer.registerClient(connection
-        start_new_thread(MainChatServer.recieveData,(connection,))
+        start_new_thread(MainChatServer.recieveData,(connection,address))
         ThreadCount += 1
         print('Thread Number: ' + str(ThreadCount))
 

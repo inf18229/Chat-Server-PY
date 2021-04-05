@@ -1,0 +1,14 @@
+import sqlite3
+class SQLServer:
+    def __init__(self):
+        userDB_Connection = sqlite3.connect("db/User.db")
+        userDB_Cursor = userDB_Connection.cursor()
+
+        sql_CreateTables = """
+            CREATE TABLE users (
+            UName VARCHAR(20),
+            Vorname VARCHAR(20),
+            NACHNAME VARCHAR(20),
+            );
+            """
+        userDB_Cursor.execute(sql_CreateTables)

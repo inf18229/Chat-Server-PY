@@ -1,6 +1,6 @@
 import socket
 from _thread import start_new_thread
-from headerMessage import HEADER_SIZE
+from headerMessage import *
 from server_sql import SQLServer
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
@@ -21,11 +21,29 @@ class ChatServer:
             acceptMessageHeader = connection.recv(HEADER_SIZE)
             if acceptMessageHeader:
                 acceptMessageHeader = int(acceptMessageHeader.strip())
-                acceptMessage = connection.recv(acceptMessageHeader)
-                print(address[0],":",address[1],"-->",acceptMessage.decode('utf-8'))
-                self.UserDB.getUserName("StefanM")
+                messageSignal = connection.recv(SIGNAL_SIZE)
+                if int(messageSignal.strip())==1:
+                    acceptMessage = connection.recv(acceptMessageHeader)
+                    print(address[0],":",address[1],"-->",acceptMessage.decode('utf-8'))
+                    self.UserDB.getallUsers()
+                if int(messageSignal.strip())==0:
+                    print("recieved registration!")
+
+                    len_name = int(connection.recv(NAME_SIZE).strip())
+                    len_surname = int(connection.recv(SURNAME_SIZE).strip())
+                    len_uname = int(connection.recv(UNAME_SIZE).strip())
+                    len_pw = int(connection.recv(PASSW_SIZE).strip())
+
+                    userName = connection.recv(len_name).decode('utf-8')
+                    print(userName)
+                    userSurname = connection.recv(len_surname).decode('utf-8')
+                    userUName = connection.recv(len_uname).decode('utf-8')
+                    userPW = connection.recv(len_pw).decode('utf-8')
+
+                    print("UserName:",userUName,"\nPasswortHash: ",userPW)
+
+                    self.UserDB.createUserinDB(userUName,userName,userSurname,userPW)
     def registerClient(self,connection):
-        self.UserDB.createUserinDB("StefanM","Stefan","Maier")
         self.registeredClient.append(connection)
     def getregisteredClients(self):
         return self.registeredClient

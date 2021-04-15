@@ -10,8 +10,8 @@ HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 ThreadCount = 0
 
-certfile = "./cert/certificate.pem"
-keyfile = "./cert/key.pem"
+certfile = "./cert/server-cert.pem"
+keyfile = "./cert/server-key.pem"
 
 def ssl_wrap_socket(sock, ssl_version=None, keyfile=None, certfile=None, ciphers=None):
     sslContext = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)     

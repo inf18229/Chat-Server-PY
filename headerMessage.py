@@ -3,7 +3,7 @@ NAME_SIZE=8
 SURNAME_SIZE=8
 UNAME_SIZE = 8
 PASSW_SIZE = 8
-SIGNAL_SIZE=1
+SIGNAL_SIZE=6
 def format_message(message,msgType):
     if not message:
         return None
@@ -18,3 +18,14 @@ def format_register_message(name, surname, uname, password,msgType):
     len_Uname = f'{len(uname):<{UNAME_SIZE}}'
     len_pw = f'{len(password):<{PASSW_SIZE}}'
     return f'{header}{signal}{len_name}{len_surname}{len_Uname}{len_pw}{name}{surname}{uname}{password}'
+def format_login_message(uname, password, msgType):
+    header = f'{len(uname+password):<{HEADER_SIZE}}'
+    signal = f'{msgType:<{SIGNAL_SIZE}}'
+    len_Uname = f'{len(uname):<{UNAME_SIZE}}'
+    len_pw = f'{len(password):<{PASSW_SIZE}}'
+    return f'{header}{signal}{len_Uname}{len_pw}{uname}{password}'
+def format_return_message(msgType, sucess):
+    if sucess:
+        return format_message("sucess", msgType + 30)
+    else:
+        return format_message("failed", msgType + 50)

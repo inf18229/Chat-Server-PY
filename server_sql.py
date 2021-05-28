@@ -51,6 +51,16 @@ class SQLServer:
         (userName,))
         print(DB_curs.fetchall())
         DB_con.close()
+    def getPasswort(self,userName):
+        DB_con = sqlite3.connect("db/User.db")
+        DB_curs = DB_con.cursor()
+        DB_curs.execute("""
+                SELECT PASSWORD
+                FROM users
+                WHERE UName = (?)
+                """,
+        (userName,))
+        return DB_curs.fetchall()
     def closeConnection(self):
         #Only for destruction
         self.userDB_Connection.close()

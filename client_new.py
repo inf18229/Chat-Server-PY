@@ -1,4 +1,4 @@
-from headerMessage import format_message,format_register_message
+from headerMessage import format_message,format_register_message, format_login_message, HEADER_SIZE, SIGNAL_SIZE
 from getpass import getpass
 from hashlib import sha256
 import socket
@@ -29,7 +29,22 @@ class ChatClient:
         else:
             return False
     def loginClient(self):
-        return
+        uName=input("Username:")
+        password = sha256(bytes(getpass("Password:"), 'utf-8')).hexdigest()
+        self.client_socket.sendall(bytes(format_login_message(uName, password, 2), 'utf-8'))
+        acceptMessageHeader = self.client_socket.recv(HEADER_SIZE)
+        if acceptMessageHeader:
+            acceptMessageHeader = int(acceptMessageHeader.strip())
+            messageSignal = self.client_socket.recv(SIGNAL_SIZE)
+            acceptMessage = self.client_socket.recv(acceptMessageHeader)
+            if int(messageSignal.strip()) == 32:
+                print("Login " + acceptMessage.decode('utf-8'))
+                return True
+            else:
+                print("Login " + acceptMessage.decode('utf-8'))
+                return False
+
+
     def menue(self):
         return
     def closeConnection(self):
@@ -38,7 +53,10 @@ class ChatClient:
 if __name__ == "__main__":
     MainChatClient = ChatClient()
     if MainChatClient.registerClient():
-        MainChatClient.writeMessage()
+        if MainChatClient.loginClient():
+            MainChatClient.writeMessage()
+        else:
+            print("Somthing went wrong during login")
     else:
         print("Failure on registering the client")
         MainChatClient.closeConnection()

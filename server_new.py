@@ -22,10 +22,18 @@ class ChatServer:
             if acceptMessageHeader:
                 acceptMessageHeader = int(acceptMessageHeader.strip())
                 messageSignal = connection.recv(SIGNAL_SIZE)
+
+                # Recieve Message
+                #
+                #
                 if int(messageSignal.strip())==1:
                     acceptMessage = connection.recv(acceptMessageHeader)
                     print(address[0],":",address[1],"-->",acceptMessage.decode('utf-8'))
                     self.UserDB.getallUsers()
+
+                # Register User
+                #
+                #
                 if int(messageSignal.strip())==0:
                     print("recieved registration!")
 
@@ -43,6 +51,28 @@ class ChatServer:
                     print("UserName:",userUName,"\nPasswortHash: ",userPW)
 
                     self.UserDB.createUserinDB(userUName,userName,userSurname,userPW)
+                # Handle Login
+                #
+                #
+                if int(messageSignal.strip())==2:
+                    len_uname = int(connection.recv(UNAME_SIZE).strip())
+                    len_pw = int(connection.recv(PASSW_SIZE).strip())
+
+                    userUName = connection.recv(len_uname).decode('utf-8')
+                    userPW = connection.recv(len_pw).decode('utf-8')
+
+                    print(userUName)
+
+                    db_uName_PW = self.UserDB.getPasswort(userUName)[0][0]
+
+                    if db_uName_PW == userPW:
+                        print("Login from " + userUName + " sucessfull")
+                        connection.sendall(bytes(format_return_message(2, True), 'utf-8'))
+                    else:
+                        print("Login from " + userUName + " failed")
+                        connection.sendall(bytes(format_return_message(2, False), 'utf-8'))
+
+
     def registerClient(self,connection):
         self.registeredClient.append(connection)
     def getregisteredClients(self):

@@ -29,3 +29,5 @@ def format_return_message(msgType, sucess):
         return format_message("sucess", msgType + 30)
     else:
         return format_message("failed", msgType + 50)
+def format_create_chat(uname, msgType):
+    return format_message(uname,msgType)

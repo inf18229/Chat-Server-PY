@@ -1,5 +1,5 @@
 import socket
-from _thread import start_new_thread
+import threading as thr
 from headerMessage import *
 from server_sql import SQLServer
 
@@ -17,6 +17,7 @@ class ChatServer:
     def getserverSocket(self):
         return self.server_socket
     def recieveData(self,connection,address):
+        # TODO: Registrer the Client that the client first has to login or register before he can send a message. Probably with an registration hex value
         while True:
             acceptMessageHeader = connection.recv(HEADER_SIZE)
             if acceptMessageHeader:
@@ -29,7 +30,6 @@ class ChatServer:
                 if int(messageSignal.strip())==1:
                     acceptMessage = connection.recv(acceptMessageHeader)
                     print(address[0],":",address[1],"-->",acceptMessage.decode('utf-8'))
-                    self.UserDB.getallUsers()
 
                 # Register User
                 #
@@ -49,6 +49,8 @@ class ChatServer:
                     userPW = connection.recv(len_pw).decode('utf-8')
 
                     print("UserName:",userUName,"\nPasswortHash: ",userPW)
+                    #TODO: Check if the Username already exists otherwise User has to reenter the Username. Currently no checks on Username
+
 
                     self.UserDB.createUserinDB(userUName,userName,userSurname,userPW)
                 # Handle Login
@@ -71,6 +73,11 @@ class ChatServer:
                     else:
                         print("Login from " + userUName + " failed")
                         connection.sendall(bytes(format_return_message(2, False), 'utf-8'))
+                #Handle create Chat Event
+                if int(messageSignal.strip())==3:
+                    chatUser = str(connection.recv(acceptMessageHeader))
+                    print("{}:{} wants to chat with {}".format(address[0],address[1],chatUser))
+
 
 
     def registerClient(self,connection):
@@ -86,7 +93,8 @@ if __name__=="__main__":
         print("Warte auf Verbindung")
         connection, address = MainChatServer.getserverSocket().accept()
         MainChatServer.registerClient(connection)
-        start_new_thread(MainChatServer.recieveData,(connection,address))
+        thr_listener = thr.Thread(target=MainChatServer.recieveData,args=(connection,address,))
+        thr_listener.start()
         ThreadCount += 1
         print('Thread Number: ' + str(ThreadCount))
 

@@ -1,4 +1,4 @@
-from headerMessage import format_message,format_register_message, format_login_message, HEADER_SIZE, SIGNAL_SIZE
+from headerMessage import format_message,format_register_message, format_login_message, HEADER_SIZE, SIGNAL_SIZE, format_create_chat
 from getpass import getpass
 from hashlib import sha256
 import socket
@@ -44,6 +44,12 @@ class ChatClient:
                 print("Login " + acceptMessage.decode('utf-8'))
                 return False
 
+    def createChat(self):
+        chatPartner_uName = input("Please type the Name of your Chat Partner")
+        #TODO: Check if the Chat Partner already exists in local Chat DB
+        self.client_socket.sendall(bytes(format_create_chat(chatPartner_uName,3),'utf-8'))
+        
+
 
     def menue(self):
         return
@@ -54,7 +60,8 @@ if __name__ == "__main__":
     MainChatClient = ChatClient()
     if MainChatClient.registerClient():
         if MainChatClient.loginClient():
-            MainChatClient.writeMessage()
+            MainChatClient.createChat()
+            #MainChatClient.writeMessage()
         else:
             print("Somthing went wrong during login")
     else:

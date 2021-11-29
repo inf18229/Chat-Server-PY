@@ -14,12 +14,17 @@ class ChatServer:
         self.server_socket.listen(5)
         self.registeredClient = []
         self.UserDB = SQLServer()
+        self.Threads = []
     def getserverSocket(self):
         return self.server_socket
     def recieveData(self,connection,address):
         # TODO: Registrer the Client that the client first has to login or register before he can send a message. Probably with an registration hex value
         while True:
+            
             acceptMessageHeader = connection.recv(HEADER_SIZE)
+            if not acceptMessageHeader: 
+                print("Connection closed!")
+                return True
             if acceptMessageHeader:
                 acceptMessageHeader = int(acceptMessageHeader.strip())
                 messageSignal = connection.recv(SIGNAL_SIZE)
@@ -74,9 +79,26 @@ class ChatServer:
                         print("Login from " + userUName + " failed")
                         connection.sendall(bytes(format_return_message(2, False), 'utf-8'))
                 #Handle create Chat Event
+                # This will return the UID of the Chat User so that the message can be correctly packed.
+
                 if int(messageSignal.strip())==3:
-                    chatUser = str(connection.recv(acceptMessageHeader))
-                    print("{}:{} wants to chat with {}".format(address[0],address[1],chatUser))
+                    chatUser = str(connection.recv(acceptMessageHeader).decode('utf-8'))
+                    print("{}:{} wants to chat with {}".format(address[0],address[1],str(chatUser)))
+                    print("I'm checking if the user exists and send him this message otherwise I store the message as long the user is offline.")
+                    remotechatUser = self.UserDB.getUserName(chatUser)
+                    # Send Back UID of the User and tehn recieve the message with the associated User
+                    print(f'UID is {remotechatUser[0][0]}')
+                    connection.sendall(bytes(fromat_uid_chatUser(str(remotechatUser[0][0]),4),'utf-8'))
+
+                # Handle Chat Message:
+                if int(messageSignal.strip())==5:
+                    len_uid = int(connection.recv(UID_LENGTH).strip())
+                    len_msg = int(connection.recv(MSG_SIZE).strip())
+
+                    uid = int(connection.recv(len_uid).decode('utf-8'))
+                    msg = connection.recv(len_msg).decode('utf-8')
+
+                    print(f'Want to send: {msg} to UID {uid}')
 
 
 
@@ -84,17 +106,25 @@ class ChatServer:
         self.registeredClient.append(connection)
     def getregisteredClients(self):
         return self.registeredClient
+    def reciverThreadWatcher(self):
+        while True:
+            for thread in self.Threads:
+                if not thread.is_alive():
+                    self.Threads.remove(thread)
+
     def __del__(self):
         self.server_socket.close()
     
 if __name__=="__main__":
     MainChatServer = ChatServer()
+    thr_listener = thr.Thread(target=MainChatServer.reciverThreadWatcher)
+    thr_listener.start()
     while True:
         print("Warte auf Verbindung")
         connection, address = MainChatServer.getserverSocket().accept()
         MainChatServer.registerClient(connection)
         thr_listener = thr.Thread(target=MainChatServer.recieveData,args=(connection,address,))
         thr_listener.start()
-        ThreadCount += 1
-        print('Thread Number: ' + str(ThreadCount))
+        MainChatServer.Threads.append(thr_listener)
+        print('Thread Number: ' + str(len(MainChatServer.Threads)))
 

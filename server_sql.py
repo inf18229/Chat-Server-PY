@@ -44,13 +44,12 @@ class SQLServer:
         DB_con = sqlite3.connect("db/User.db")
         DB_curs = DB_con.cursor()
         DB_curs.execute("""
-        SELECT Vorname, NACHNAME
+        SELECT ROWID, Vorname, NACHNAME
         FROM users
         WHERE UName = (?)
         """,
         (userName,))
-        print(DB_curs.fetchall())
-        DB_con.close()
+        return DB_curs.fetchall()
     def getPasswort(self,userName):
         DB_con = sqlite3.connect("db/User.db")
         DB_curs = DB_con.cursor()

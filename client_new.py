@@ -1,4 +1,4 @@
-from headerMessage import format_message,format_register_message, format_login_message, HEADER_SIZE, SIGNAL_SIZE, format_create_chat
+from headerMessage import format_message,format_register_message, format_login_message, HEADER_SIZE, SIGNAL_SIZE, format_create_chat, format_chatMessage
 from getpass import getpass
 from hashlib import sha256
 import socket
@@ -10,6 +10,7 @@ class ChatClient:
     def __init__(self):
         self.client_socket =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((HOST, PORT))
+        self.currentChatID = None
     def writeMessage(self):
         while True:
             nachricht = input("Message\n")
@@ -44,26 +45,39 @@ class ChatClient:
                 print("Login " + acceptMessage.decode('utf-8'))
                 return False
 
-    def createChat(self):
+    def selectChatUser(self):
         chatPartner_uName = input("Please type the Name of your Chat Partner")
         #TODO: Check if the Chat Partner already exists in local Chat DB
         self.client_socket.sendall(bytes(format_create_chat(chatPartner_uName,3),'utf-8'))
-        
+        acceptMessageHeader = self.client_socket.recv(HEADER_SIZE)
+        if acceptMessageHeader:
+            acceptMessageHeader = int(acceptMessageHeader.strip())
+            messageSignal = self.client_socket.recv(SIGNAL_SIZE)
+            acceptMessage = self.client_socket.recv(acceptMessageHeader)
+            if int(messageSignal.strip()) == 4:
+                self.currentChatID = int(acceptMessage.decode("utf-8"))
+                print(f'Recieved UID {self.currentChatID}')
+                return True
+            else:
+                print(f'Unhandled Signal Code {int(messageSignal.strip())}')
+    def sendMessageToUser(self):
+        msg = input("Nachricht: ")
+        self.client_socket.sendall(bytes(format_chatMessage(self.currentChatID,msg,5),'utf-8'))
 
+    def __del__(self):
+        print("Selbstzerstörungsmodus an!")
+        self.client_socket.close()
 
     def menue(self):
         return
-    def closeConnection(self):
-        self.client_socket.close()
 
 if __name__ == "__main__":
     MainChatClient = ChatClient()
     if MainChatClient.registerClient():
         if MainChatClient.loginClient():
-            MainChatClient.createChat()
-            #MainChatClient.writeMessage()
+            MainChatClient.selectChatUser()
+            MainChatClient.sendMessageToUser()
         else:
             print("Somthing went wrong during login")
     else:
         print("Failure on registering the client")
-        MainChatClient.closeConnection()
